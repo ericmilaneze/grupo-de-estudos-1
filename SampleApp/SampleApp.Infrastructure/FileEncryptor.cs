@@ -10,19 +10,27 @@ namespace SampleApp.Infrastructure
         {
             using (var process = new Process())
             {
-                process.StartInfo.FileName = "pgp"; //https://docs.broadcom.com/doc/pgp-command-line-en
-                process.StartInfo.Arguments = $"--encrypt {file.FullName} --recipient FileReceiverCommonName --output {file.FullName}";
-                process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                process.StartInfo.CreateNoWindow = true;
-                process.StartInfo.UseShellExecute = false;
-
+                process.StartInfo = GetStartInfoParameters(file.FullName);
                 process.Start();
-                
                 process.WaitForExit();
-
-                if (process.ExitCode != 0)
-                    throw new FileEncryptException($"Failure to encrypt file, exit code is {process.ExitCode}");
+                CheckExitCode(process);
             }
+        }
+
+        private ProcessStartInfo GetStartInfoParameters(string fileFullName) =>
+            new ProcessStartInfo()
+            {
+                FileName = "pgp", //https://docs.broadcom.com/doc/pgp-command-line-en
+                Arguments = $"--encrypt {fileFullName} --recipient FileReceiverCommonName --output {fileFullName}",
+                WindowStyle = ProcessWindowStyle.Hidden,
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+        
+        private static void CheckExitCode(Process process)
+        {
+            if (process.ExitCode != 0)
+                throw new FileEncryptException($"Failure to encrypt file, exit code is {process.ExitCode}");
         }
     }
 }

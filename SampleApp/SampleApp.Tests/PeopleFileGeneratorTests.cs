@@ -9,9 +9,9 @@ using System.IO.Abstractions.TestingHelpers;
 
 namespace SampleApp.Tests
 {
-    public class PersonFileGeneratorServiceTests
+    public class PeopleFileGeneratorTests
     {
-        private readonly IEnumerable<Person> persons = new[]
+        private readonly ICollection<Person> people = new[]
         {
             new Person { Name = "John", Birthday = new DateTime(1989, 10, 18), Profession = "Developer", Patrimony = 125000.56M },
             new Person { Name = "Anne", Birthday = new DateTime(1987, 11, 11), Profession = "Lawyer", Patrimony = 270801.12M },
@@ -20,28 +20,25 @@ namespace SampleApp.Tests
         private readonly string fileName = @"C:\temp\teste.txt";
 
         private MockFileSystem fileSystemMock;
-        private Mock<IPersonRepository> personRepositoryMock;
-        private Mock<IFileEncryptor> fileEncryptorMock;
-        private PersonFileGeneratorService sut;
+        private PeopleFileGenerator sut;
         
         [SetUp]
         public void Setup()
         {
-            fileSystemMock = new MockFileSystem();
-            
-            personRepositoryMock = new Mock<IPersonRepository>();
-            personRepositoryMock.Setup(x => x.GetAll()).Returns(persons);
+            SetupMocks();
+            sut = new PeopleFileGenerator(fileSystemMock);
+        }
 
-            fileEncryptorMock = new Mock<IFileEncryptor>();            
-            
-            sut = new PersonFileGeneratorService(fileSystemMock, personRepositoryMock.Object, fileEncryptorMock.Object);
+        private void SetupMocks()
+        {
+            fileSystemMock = new MockFileSystem();
         }
 
         [Test]
         public void ShouldGenerateValidFile()
         {
             //Act
-            sut.GenerateFile(fileName);
+            sut.GenerateFile(fileName, people);
 
             //Check
             var generatedFile = fileSystemMock.GetFile(fileName);
@@ -52,19 +49,5 @@ namespace SampleApp.Tests
             Assert.AreEqual("ANNE      19871111LAWYER    0027080112", lines[1]);
             Assert.AreEqual("PAUL      19590713DOCTOR    0017318504", lines[2]);
         }
-
-        [Test]
-        public void ShouldEncryptFile()
-        {
-            //Act
-            sut.GenerateFile(fileName);
-
-            //Check
-            fileEncryptorMock.Verify(x => 
-                x.EncryptFile(It.Is<IFileInfo>(f => f.FullName.Equals(fileName))), 
-                Times.Once()
-            );
-            fileEncryptorMock.VerifyNoOtherCalls();
-        }   
     }
 }

@@ -1,9 +1,10 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO.Abstractions;
 
 namespace SampleApp.Interfaces
 {
-    public interface IPersonFileGeneratorService
+    public interface IPeopleFileGeneratorService
     {
-        void GenerateFile(string fileName);
+        IFileInfo GenerateFile(string fileName, ICollection<Person> people);
     }
 }
